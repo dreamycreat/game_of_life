@@ -1,70 +1,5 @@
-/* NOTE: Detecting current compiler */
-#if defined(_MSC_VER)
-	#define MSVC_COMPILER (1)
-	#define LLVM_COMPILER (0)
-	#define GCC_COMPILER (0)
-	#define INTEL_COMPILER (0)
-#elif defined(__INTEL_COMPILER)
-	#define MSVC_COMPILER (0)
-	#define LLVM_COMPILER (0)
-	#define GCC_COMPILER (0)
-	#define INTEL_COMPILER (1)
-#elif defined(__GNUC__) && !defined(__llvm__) && !defined(__INTEL_COMPILER)
-	#define MSVC_COMPILER (0)
-	#define LLVM_COMPILER (0)
-	#define GCC_COMPILER (1)
-	#define INTEL_COMPILER (0)
-#elif defined(__llvm__)
-	#define MSVC_COMPILER (0)
-	#define LLVM_COMPILER (1)
-	#define GCC_COMPILER (0)
-	#define INTEL_COMPILER (0)
-#endif
-
-/* NOTE: C89 inline macro for different compilers */
-#if !defined(__cplusplus) && (__STDC_VERSION__ < 199901L)
-	#if defined(MSVC_COMPILER)
-		#define inline __forceinline
-	#elif #defined(LLVM_COMPILER)
-		#define inline __attribute__((always_inline))
-	#elif defined(GCC_COMPILER)
-		#define inline __attribute__((always_inline))
-	#elif defined(INTEL_COMPILER)
-		#define inline __attribute__((forceinline))
-	#endif
-#endif
-
-#if defined(DEBUG)
-	#define assert(expression) if(!(expression)) { *(int *)0 = 0; }
-#else
-	#define assert(expression)
-#endif
-
-#define min(a, b) ((a) < (b)) ? (a) : (b)
-#define max(a, b) ((a) > (b)) ? (a) : (b)
-
-#define TRUE (1)
-#define FALSE (0)
-
-#define global_variable static
-#define internal static
-
-#include <stdint.h>
-typedef int32_t b32;
-typedef float f32;
-typedef double f64;
-
-typedef int8_t s8;
-typedef int16_t s16;
-typedef int32_t s32;
-typedef int64_t s64;
-
-typedef uint8_t u8;
-typedef uint16_t u16;
-typedef uint32_t u32;
-typedef uint64_t u64;
-
-
+#include "simulation_platform.h"
+#include "simulation.c"
 
 #define WIN32_LEAN_AND_MEAN
 #include <windows.h>
@@ -227,6 +162,9 @@ WinMain(HINSTANCE instance,
 			f32 ms_elapsed;
 			f32 ms_per_frame, desired_ms_per_frame;
 			f32 frames_per_second;
+
+			/* simulation pixel buffer for platform backbuffer */
+			pixel_buffer simulation_backbuffer = {0};
 
 			/* removing resizable window capabilities */
 			SetWindowLongA(window, GWL_STYLE, (GetWindowLong(window, GWL_STYLE) & ~WS_SIZEBOX) & ~WS_MAXIMIZEBOX);
@@ -402,32 +340,19 @@ WinMain(HINSTANCE instance,
 				}
 
 				/*
-				 * Update & Draw
+				 * Update
 				*/
 
-				/* IMPORTANT: Test Code! Clear client area with a HEX color */
-				#if 1
-				{
-					s32 x, y;
-					u32 *pixel;
-					u32 pixel_color;
+				simulation_backbuffer.width = global_backbuffer.width;
+				simulation_backbuffer.height = global_backbuffer.height;
+				simulation_backbuffer.bytes_per_pixel = global_backbuffer.bytes_per_pixel;
+				simulation_backbuffer.line_stride = global_backbuffer.line_stride;
+				simulation_backbuffer.memory = global_backbuffer.pixels;
+				simulation_update_and_render(&simulation_backbuffer);
 
-					pixel = (u32 *)global_backbuffer.pixels;
-					pixel_color = 0xff14233a; /* A R G B */
-
-					for(y = global_backbuffer.height - 1;
-					    y >= 0;
-					    --y)
-					{
-						for(x = 0;
-						    x < global_backbuffer.width;
-						    ++x)
-						{
-							*pixel++ = pixel_color;
-						}
-					}
-				}
-				#endif
+				/*
+				 * Draw
+				*/
 
 				SelectObject(global_backbuffer.bitmap_dc, global_backbuffer.bitmap_handle);
 				BitBlt(window_dc,
