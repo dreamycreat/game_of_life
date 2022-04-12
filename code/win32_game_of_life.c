@@ -1,3 +1,9 @@
+/*
+	NOTE(Douglas): The project structure is very simple: one translation unit only.
+	Once one's include "simulation_platform.h" and "simulation.c" in the platform
+	layer specific code, everything is good to go.
+*/
+
 #include "simulation_platform.h"
 #include "simulation.c"
 
@@ -44,7 +50,7 @@ win32_resize_backbuffer(s32 new_width,
 	bitmap_info.bmiHeader.biSize = sizeof(bitmap_info.bmiHeader);
 	bitmap_info.bmiHeader.biWidth = new_width;
 
-	bitmap_info.bmiHeader.biHeight = new_height;
+	bitmap_info.bmiHeader.biHeight = -new_height;
 	/*
 	 * NOTE: "biHeight" with a positive number are bottom-top drawing. For a top-bottom
 	 * drawing, use the NEGATIVE value of the height.
@@ -73,6 +79,11 @@ win32_window_messages_callback(HWND window,
 
 	switch(msg)
 	{
+		case WM_SETCURSOR:
+		{
+			SetCursor(0);
+		} break;
+
 		case WM_CLOSE:
 		{
 			global_running = FALSE;
@@ -107,7 +118,7 @@ WinMain(HINSTANCE instance,
 	window_class.style = (CS_VREDRAW | CS_HREDRAW);
 	window_class.lpfnWndProc = win32_window_messages_callback;
 	window_class.hInstance = instance;
-	window_class.hCursor = LoadCursor(instance, IDC_ARROW);
+	window_class.hCursor = LoadCursorA(instance, IDC_ARROW);
 	window_class.lpszClassName = "Main Window Class";
 
 	if(RegisterClassExA(&window_class))
@@ -166,6 +177,11 @@ WinMain(HINSTANCE instance,
 			/* simulation pixel buffer for platform backbuffer */
 			pixel_buffer simulation_backbuffer = {0};
 
+			/* simulation state related variables */
+			simulation_state state = {0};
+			size_t simulation_grid_memory_size;
+			
+
 			/* removing resizable window capabilities */
 			SetWindowLongA(window, GWL_STYLE, (GetWindowLong(window, GWL_STYLE) & ~WS_SIZEBOX) & ~WS_MAXIMIZEBOX);
 
@@ -181,6 +197,11 @@ WinMain(HINSTANCE instance,
 
 			/* backbuffer setup */
 			win32_resize_backbuffer(DEFAULT_WINDOW_WIDTH, DEFAULT_WINDOW_HEIGHT);
+
+			/* simulation state setup */
+			simulation_grid_memory_size = global_backbuffer.width * global_backbuffer.height * global_backbuffer.bytes_per_pixel;
+			state.grid_output = VirtualAlloc(0, simulation_grid_memory_size, MEM_RESERVE | MEM_COMMIT, PAGE_READWRITE);
+			state.cells_state = VirtualAlloc(0, simulation_grid_memory_size, MEM_RESERVE | MEM_COMMIT, PAGE_READWRITE);
 
 			/* setting window timer resolution for events */
 			if(timeGetDevCaps(&device_time_capabilities, sizeof(device_time_capabilities)) != TIMERR_NOERROR)
@@ -203,7 +224,7 @@ WinMain(HINSTANCE instance,
 			}
 
 			desired_ms_per_frame = (1.0f / (f32)monitor_vertical_refresh_rate) * 1000;
-			limit_fps = FALSE;
+			limit_fps = TRUE;
 
 			QueryPerformanceFrequency(&performance_frequency);
 			QueryPerformanceCounter(&start_counter);
@@ -348,7 +369,7 @@ WinMain(HINSTANCE instance,
 				simulation_backbuffer.bytes_per_pixel = global_backbuffer.bytes_per_pixel;
 				simulation_backbuffer.line_stride = global_backbuffer.line_stride;
 				simulation_backbuffer.memory = global_backbuffer.pixels;
-				simulation_update_and_render(&simulation_backbuffer);
+				simulation_update_and_render(&simulation_backbuffer, &state);
 
 				/*
 				 * Draw
@@ -393,6 +414,9 @@ WinMain(HINSTANCE instance,
 
 				/* Update window title with frame details & update start_counter */
 				QueryPerformanceCounter(&end_counter);
+
+				/* using counters as seeds, every frame */
+				set_random_number_seed((u32) end_counter.QuadPart);
 
 				ms_per_frame = (f32) (end_counter.QuadPart - start_counter.QuadPart) / (f32) performance_frequency.QuadPart;
 				ms_per_frame *= 1000;

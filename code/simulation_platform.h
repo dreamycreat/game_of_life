@@ -1,5 +1,7 @@
+#if !defined(SIMULATION_PLATFORM_H)
+
 /*
-	NOTE(Douglas): To be included for different OSs platform layers.
+	NOTE(Douglas): To be included (once) for different OSs platform layers.
 */
 
 
@@ -46,8 +48,10 @@
 	#define assert(expression)
 #endif
 
+#if 0 /* disabled for "stdlib.h" */
 #define min(a, b) ((a) < (b)) ? (a) : (b)
 #define max(a, b) ((a) > (b)) ? (a) : (b)
+#endif 
 
 #define TRUE (1)
 #define FALSE (0)
@@ -72,6 +76,9 @@ typedef uint64_t u64;
 
 
 
+#include <stdio.h> /* sprintf | TODO: clear */
+#include "simulation_utils.h"
+
 /*
  * Simulation specific
 */
@@ -84,3 +91,14 @@ typedef struct
 	s32 line_stride;
 	void *memory;
 } pixel_buffer;
+
+typedef struct
+{
+	b32 initialized;
+
+	void *grid_output;
+	void *cells_state;
+} simulation_state;
+
+#define SIMULATION_PLATFORM_H
+#endif

@@ -27,7 +27,7 @@ cl %debug_build_config%
 rem new line with echo
 echo.
 
-rem echo 	(release build)
-rem cl %release_build_config%
+echo 	(release build)
+cl %release_build_config%
 
 popd
