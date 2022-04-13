@@ -11,7 +11,7 @@
 ###### Requirements
 * Windows 7 or greater
 * Processor 2.1+ GHz (for 60+ FPS) or better
-* 2 GB Ram (12 Kb free for the program)
+* 2 GB Ram (20 MB (720p res.) free for the program)
 
 ###### Hardware tested
 > Windows 7 Professional (Service Pack 1), i3-2310M 2.1 GHz, 4 GB Ram.
