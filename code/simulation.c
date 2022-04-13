@@ -81,7 +81,6 @@ copy_cell_to_output(pixel_buffer *buffer,
 
 internal inline void
 draw_cell(pixel_buffer *buffer,
-          simulation_state *state,
           s32 x,
           s32 y,
           u32 color)
@@ -251,11 +250,11 @@ simulation_update_and_render(pixel_buffer *buffer,
 
 				if(*output_cell == CELL_ALIVE)
 				{
-					draw_cell(buffer, state, x, y, ALIVE_CELL_COLOR);
+					draw_cell(buffer, x, y, ALIVE_CELL_COLOR);
 				}
 				else
 				{
-					draw_cell(buffer, state, x, y, DEAD_CELL_COLOR);
+					draw_cell(buffer, x, y, DEAD_CELL_COLOR);
 				}
 			}
 		}

@@ -233,131 +233,13 @@ WinMain(HINSTANCE instance,
 			while(global_running)
 			{
 				/*
-				 * Input
+				 * Window messages
 				*/
 
 				while(PeekMessageA(&msg, window, 0, 0, PM_REMOVE))
 				{
-					/*
-					 * Mouse input
-					*/
-
-					/* (key pressed) mouse button messages */
-					if(msg.message == WM_LBUTTONDOWN ||
-					   msg.message == WM_MBUTTONDOWN ||
-					   msg.message == WM_RBUTTONDOWN)
-					{
-						UINT mouse_button;
-
-						mouse_button = (UINT) msg.wParam;
-
-						switch(mouse_button)
-						{
-							case MK_LBUTTON:
-							{
-							} break;
-
-							case MK_MBUTTON:
-							{
-							} break;
-
-							case MK_RBUTTON:
-							{
-							} break;
-						}
-					}
-
-					/* (key released) mouse button messages */
-					if(msg.message == WM_LBUTTONUP)
-					{
-					}
-
-					if(msg.message == WM_MBUTTONUP)
-					{
-					}
-
-					if(msg.message == WM_RBUTTONUP)
-					{
-					}
-
-					/*
-					 * Keyboard input
-					*/
-
-					if(msg.message == WM_KEYDOWN ||
-					   msg.message == WM_KEYUP ||
-					   msg.message == WM_SYSKEYDOWN ||
-					   msg.message == WM_SYSKEYUP)
-					{
-						UINT key;
-						b32 is_down, was_down, is_alt;
-
-						key = (UINT) msg.wParam;
-						is_alt = (msg.lParam & (1 << 29)) != 0;
-						is_down = (msg.lParam & (1 << 31)) == 0;
-						was_down = (msg.lParam & (1 << 30)) != 0;
-
-						if(was_down != is_down)
-						{
-							switch(key)
-							{
-								case VK_RETURN:
-								{
-									/*
-									 * NOTE: Toggle fullscreen
-									*/
-									if(is_alt && is_down)
-									{
-										DWORD window_style;
-										RECT client_rect = {0};
-
-										window_style = GetWindowLong(window, GWL_STYLE);
-
-										if(window_style & WS_OVERLAPPEDWINDOW)
-										{
-											MONITORINFO monitor_info = {0};
-											monitor_info.cbSize = sizeof(MONITORINFO);
-
-											if(GetWindowPlacement(window, &global_window_placement) &&
-											   GetMonitorInfoA(MonitorFromWindow(window, MONITOR_DEFAULTTOPRIMARY), &monitor_info))
-											{
-												SetWindowLong(window, GWL_STYLE, window_style & ~WS_OVERLAPPEDWINDOW);
-												SetWindowPos(window, HWND_TOP,
-												             monitor_info.rcMonitor.left, monitor_info.rcMonitor.top,
-												             monitor_info.rcMonitor.right - monitor_info.rcMonitor.left,
-												             monitor_info.rcMonitor.bottom - monitor_info.rcMonitor.top,
-												             SWP_NOOWNERZORDER | SWP_FRAMECHANGED);
-											}
-										}
-										else
-										{
-											SetWindowLong(window, GWL_STYLE, window_style | ((WS_OVERLAPPEDWINDOW & ~WS_SIZEBOX) & ~WS_MAXIMIZEBOX));
-											SetWindowPlacement(window, &global_window_placement);
-											SetWindowPos(window, 0, 0, 0, 0, 0,
-											             SWP_NOMOVE | SWP_NOSIZE | SWP_NOZORDER |
-											             SWP_NOOWNERZORDER | SWP_FRAMECHANGED);
-										}
-
-										assert(GetClientRect(window, &client_rect));
-										win32_resize_backbuffer(client_rect.right, client_rect.bottom);
-									}
-								} break;
-
-								case VK_F4:
-								{
-									if(is_alt && is_down)
-									{
-										global_running = FALSE;
-									}
-								} break;
-							}
-						}
-					}
-					else
-					{
-						TranslateMessage(&msg);
-						DispatchMessage(&msg);
-					}
+					TranslateMessage(&msg);
+					DispatchMessage(&msg);
 				}
 
 				/*
