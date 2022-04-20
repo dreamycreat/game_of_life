@@ -5,12 +5,12 @@
 ###### Details
 * Game of life implemented using the Win32 API + software rendering
 * Timing and main thread sleep
-* It can run 60 FPS+ on a single thread on a 2.1+ GHz processor (using only software rendering)
+* It can run 60 FPS+ on a single thread on a 2.1+ GHz processor (720p / using only software rendering)
 * One's can easily add & test new patterns using strings
 
 ###### Requirements
 * Windows 7 or greater
-* Processor 2.1+ GHz (for 60+ FPS) or better
+* Processor 2.1+ GHz or better
 * 2 GB Ram (20 MB (720p res.) free for the program)
 
 ###### Hardware tested
